@@ -1,0 +1,178 @@
+@font-face {
+	font-family: adventure;
+	src: url('../fonts/adventure.otf');
+}
+@font-face {
+	font-family: bankgothic;
+	src: url('../fonts/bankgothic.ttf');
+}
+
+.logo
+{
+	position: absolute;
+	right: 10px;
+	top: 40px;
+}
+
+
+*, *:before, *:after {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    margin: 0;
+    padding: 0;
+}
+
+body,html { width: 100%; height: 100%; }
+#ui { position: relative; width: 100%; height: 100%; overflow: hidden; }
+.info { position: absolute; font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; }
+
+
+.info.vehicle {bottom: 20px; left: 50%; transform: translate(-50%,0); z-index: 11;}
+.info.vehicle.active { opacity: 1; }
+.info.vehicle.inactive { opacity: 0; }
+
+
+.info.vehicle #speedometer { position: relative; width: 500px; height: 220px;}
+.info.vehicle #speedometer #progress-speed svg { position: absolute; top: 0; left: 50%; transform: translate(-50%,0) rotate(138deg); width: 100px; }
+
+.info.vehicle #speedometer #progress-speed svg circle { display: block; fill: transparent; stroke-width: 7px; stroke-linecap: round; stroke-dasharray: 283; stroke-dashoffset: 140; transform-origin: 50% 50%; }
+.info.vehicle #speedometer #progress-speed svg circle.mask { stroke: rgba(0,0,0,0.35); }
+.info.vehicle #speedometer #progress-speed svg circle.speed { stroke: url(#speed-gradient); stroke-dashoffset: 180; }
+
+
+.info.vehicle #speedometer #vehicle-speed { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; color: #FFF;}
+.info.vehicle #speedometer #vehicle-speed span { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; display: block; font-weight: 900; font-size: 30px; text-shadow: 0px 1px 1px rgba(134, 134, 134, 0.75); }
+
+ .info.vehicle #speedometer #vehicle-speed strong { display: inline-block; font-size: 10px; font-weight: 900; padding: 2px 5px; border-radius: 100px; text-shadow: 0px 1px 1px rgba(0,0,0,0.75); transition: all 150ms linear; }
+ .info.vehicle #speedometer #vehicle-speed strong.on { background: rgb(136, 0, 0); }
+
+.info.vehicle #speedometer #vehicle-gear { padding: 0px; position: absolute; bottom: 71px; right: 40px ; width: 50px; transform: translateY(50%); border: 1px solid rgb(136, 0, 0); }
+
+.info.vehicle #speedometer #vehicle-gear span {padding: 7px 1px 0 1px;}
+
+
+.info.vehicle #speedometer #vehicle-status-left { position: absolute; bottom: 30px; right: 40px; }
+.info.vehicle #speedometer #vehicle-status-left ul li { float: left; }
+
+.info.vehicle #speedometer #vehicle-status-right { position: absolute; bottom: 25px; right: 180px; font-size: 10px;}
+.info.vehicle #speedometer #vehicle-status-right ul {list-style-type: disc; width: 20px;}
+.info.vehicle #speedometer #vehicle-status-right ul li { float: left; }
+
+.info.vehicle #speedometer li#seatbelt span { background: rgb(136, 0, 0); animation: trew-status-blink 1000ms infinite; }
+.info.vehicle #speedometer li#seatbelt.on span { background: rgba(136, 0, 0, 0)}
+
+#fuel {
+	display: block; position: relative; font-size: 10px; padding: 10px 8px; margin: 0px 3px 0px 3px; width: 50px; height: 7px; border-radius: 3px; overflow: hidden; background: rgba(0,0,0,0.35); border: 0.5px solid rgb(255, 255, 255,0.5);
+}
+
+.info.vehicle #speedometer li#fuel span { background: rgb(136, 0, 0); float: left;}
+
+.info.vehicle #speedometer li#lights.normal span,
+.info.vehicle #speedometer li#lights.high span { background: rgb(136, 0, 0); }
+
+#lights {
+	border-radius: 3px;
+	width: 22px; height: auto;
+	border: 0.5px solid rgba(255, 255, 255, 0.5);
+	margin: 1.5px 0px 1.5px 0px;
+}
+
+#signals {
+	border-radius: 3px;
+	width: 22px; height: auto;
+	border: 0.5px solid rgb(255, 255, 255, 0.5);
+	margin: 1.5px 0px 1.5px 0px;
+}
+
+#seatbelt {
+	border-radius: 3px;
+	width: 22px; height: auto;
+	border: 0.5px solid rgb(255, 255, 255, 0.5);
+	margin: 1.5px 0px 1.5px 0px;
+}
+.info.vehicle #speedometer li#signals.dying span { background: rgb(136, 0, 0); animation: trew-status-blink 750ms infinite; }
+.info.vehicle #speedometer #KM { text-align: center; color: #FFF;  font-weight: 900; font-size: 0px; } 
+div.separator { display: block; clear: both; width: 100%; }
+
+
+
+
+.info.vehicle .icon { display: block; position: relative; padding: 10px 8px; margin: 10px 3px 0 3px; width: 30px; height: 30px; border-radius: 100px; overflow: hidden; background: rgba(0,0,0,0.35); }
+
+.info.vehicle .icon i { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); color: #FFF;}
+.info.vehicle .icon img { width: 12px; margin: 0px; }
+.info.vehicle .icon span { display: block; position: absolute; left: 50%; bottom: 0; transform: translate(-50%,0); width: 100%; height: 100%; }
+
+.info.vehicle .icon.text { display: inline-block; overflow: visible; width: auto; padding: 0; border-radius: 3px; }
+.info.vehicle .icon.text i { display: inline-block; float: left; transform: translate(0%,0%); left: 0; top: 0; position: relative; padding: 10px 8px; width: 30px; height: 30px; border-radius: 100px; color: #FFF; }
+.info.vehicle .icon.text i:before { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); }
+.info.vehicle .icon.text span { position: relative; width: auto; height: auto; left: 0; transform: translate(0,0); display: inline-block; font-size: 12px; padding: 7px 15px 0 10px; font-weight: 700; color: #FFF; }
+
+
+.info.vehicle .icon.dying span { animation: trew-status-blink 500ms infinite; }
+.info.vehicle .icon.pulse i { animation: trew-pulse 500ms 1; }
+
+
+#speedometer.small {
+    width: 200px;
+    height: 100px;
+}
+
+#speedometer.medium {
+    width: 300px;
+    height: 150px;
+}
+
+#speedometer.large {
+    width: 400px;
+    height: 200px;
+}
+
+
+
+
+
+@keyframes trew-soundwave {
+    0% { box-shadow: 0 0 0 0px rgba(255,255,255,0.75); }
+    100% { box-shadow: 0 0 0 25px rgba(255,255,255,0); }
+}
+
+@keyframes trew-status-blink {
+    0% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+@keyframes trew-pulse {
+    0% { transform: scale(1); }
+    25% { transform: scale(1.5); }
+    100% { transform: scale(1); }
+}
+
+@keyframes trew-speed {
+    0% { stroke-dashoffset: 280; }
+    50% { stroke-dashoffset: 75; }
+    100% { stroke-dashoffset: 280; }
+}
+
+@keyframes trew-rainbow{
+        100%,
+        0%{ background: rgba(255,0,0,0.70); }
+        8%{ background: rgba(255,127,0,0.70); }
+        16%{ background: rgba(230,205,23,0.70); }
+        25%{ background: rgba(127,255,0,0.70); }
+        33%{ background: rgba(0,255,0,0.70); }
+        41%{ background: rgba(0,255,127,0.70); }
+        50%{ background: rgba(0,255,255,0.70); }
+        58%{ background: rgba(0,127,255,0.70); }
+        66%{ background: rgba(0,0,255,0.70); }
+        75%{ background: rgba(127,0,255,0.70); }
+        83%{ background: rgba(255,0,255,0.70); }
+        91%{ background: rgba(255,0,127,0.70); }
+}
