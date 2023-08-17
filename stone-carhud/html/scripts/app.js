@@ -373,24 +373,6 @@ this.updateVehicle = function(data) {
             vehicleFuel.classList.remove('dying');
         }
 
-        // Adicionando a classe correspondente ao tamanho configurado
-        var velocimetroSize = Config.velocimetroSize;
-
-        if (velocimetroSize === 1) {
-            vehicleInfo.classList.add('small');
-        } else if (velocimetroSize === 2) {
-            vehicleInfo.classList.add('medium');
-        } else if (velocimetroSize === 3) {
-            vehicleInfo.classList.add('large');
-        }
-    } else {
-        if (vehicleInfo.classList.contains('active')) {
-            vehicleSeatbelt.classList.remove('on');
-            vehicleCruiser.classList.remove('on');
-
-            vehicleInfo.classList.remove('active');
-            vehicleInfo.classList.add('inactive');
-        }
     }
 };
 
