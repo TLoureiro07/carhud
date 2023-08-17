@@ -263,7 +263,7 @@ Citizen.CreateThread(function ()
 		end
 		-- Vehicle Seatbelt
 		if IsPedInAnyVehicle(player, false) then
-			if IsControlJustReleased(0,  Keys['B']) then
+			if IsControlJustReleased(0, Config.vehicle.keys.seatbelt) then
 				TriggerServerEvent("InteractSound_SV:PlayOnSource", "buckle", 0.9)
 				WichVehicleItIs(vehicle)
 				if(PedVehIsCar)then
