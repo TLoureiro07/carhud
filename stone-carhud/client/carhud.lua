@@ -65,9 +65,9 @@ Fwv = function (entity)
 		    hr = hr * 0.0174533
 		    return { x = math.cos(hr) * 2.0, y = math.sin(hr) * 2.0 }
       end
-Citizen.CreateThread(function()
+--[[Citizen.CreateThread(function()
 	while true do
-		Citizen.Wait(1)
+		Citizen.Wait(0)
         local MyPed = PlayerPedId()
         local MyPedVeh = GetVehiclePedIsIn(MyPed, false)
         if IsPedInAnyVehicle(MyPed, false) then
@@ -106,12 +106,61 @@ Citizen.CreateThread(function()
             end
         end
     end
+end)]]
+Citizen.CreateThread(function()
+    while true do
+        Citizen.Wait(100) -- Reduzindo a frequência de atualização para 100ms
+
+        local MyPed = PlayerPedId()
+        local MyPedVeh = GetVehiclePedIsIn(MyPed, false)
+
+        if IsPedInAnyVehicle(MyPed, false) then
+            -- Movendo as chamadas GetEntitySpeed e GetEntityVelocity para fora do loop
+            local speed = GetEntitySpeed(MyPedVeh)
+            local vel = GetEntityVelocity(MyPedVeh)
+
+            if (speed > (MinSpeedBelt / 3.6) and (speed - speedBuffer[1]) > (speedBuffer[1] * seatbeltSpeedPedOut)) or (speed > (MinSpeedBelt / 7.2) and (speed - speedBuffer[2]) > (speedBuffer[2] * seatbeltSpeedPedOut)) then
+                if not seatbeltIsOn then
+                    local co = GetEntityCoords(MyPed)
+                    local fw = Fwv(MyPed)
+
+                    if IsVehicleWindowIntact(MyPedVeh, 6) then
+                        SmashVehicleWindow(MyPedVeh, 6)
+                    end
+
+                    SetEntityCoords(MyPed, co.x + fw.x, co.y + fw.y, co.z - 0.47, true, true, true)
+                    Citizen.Wait(1)
+                    SetPedToRagdoll(MyPed, 1000, 1000, 0, 0, 0, 0)
+                    SetEntityVelocity(MyPed, vel.x, vel.y, vel.z)
+                else
+                    blackout()
+                end
+
+                local pedIsDriver = (GetPedInVehicleSeat(MyPedVeh, -1) == MyPed)
+
+                if pedIsDriver then
+                    if not seatbeltIsOn then
+                        TriggerEvent("esx_status:add", "stress", 600000)
+                    else
+                        TriggerEvent("esx_status:add", "stress", 300000)
+                    end
+                end
+            end
+
+            -- Atualizando os buffers de velocidade e velocidade
+            speedBuffer[2] = speedBuffer[1]
+            speedBuffer[1] = speed
+            velBuffer[2] = velBuffer[1]
+            velBuffer[1] = vel
+        end
+    end
 end)
+
 local function roundToNthDecimal(num, n)
     local mult = 10^(n or 0)
     return math.floor(num * mult + 0.5) / mult
   end
-Citizen.CreateThread(function()
+--[[Citizen.CreateThread(function()
 	while true do
 		Citizen.Wait(0)
 
@@ -245,7 +294,142 @@ Citizen.CreateThread(function()
 		end
 		SendNUIMessage(vehicleInfo)
 	end
+end)]]
+Citizen.CreateThread(function()
+    while true do
+        Citizen.Wait(100) -- Reduzindo a frequência de atualização para 100ms
+
+        local player = PlayerPedId()
+        local vehicle = GetVehiclePedIsIn(player, false)
+        local position = GetEntityCoords(player)
+        local vehicleIsOn = GetIsVehicleEngineRunning(vehicle)
+        local vehicleInfo = {}
+
+        if IsPedInAnyVehicle(player, false) then
+            -- Obtendo a velocidade do veículo
+            local vehicleSpeedSource = GetEntitySpeed(vehicle)
+            local vehicleSpeed
+            if Config.vehicle.speedUnit == "kmh" then
+                vehicleSpeed = math.ceil(vehicleSpeedSource * 3.6) -- km/h
+            else
+                vehicleSpeed = math.ceil(vehicleSpeedSource * 2.236936) -- mph
+            end
+
+            -- Calculando a velocidade do prego
+            local vehicleNailSpeed = math.ceil(280 - math.ceil(math.ceil(vehicleSpeed * 205) / Config.vehicle.maxSpeed))
+
+            -- Obtendo o nível de combustível e a marcha do veículo
+            local vehicleFuel = GetVehicleFuelLevel(vehicle)
+            local vehicleGear = GetVehicleCurrentGear(vehicle)
+            if (vehicleSpeed == 0 and vehicleGear == 0) or (vehicleSpeed == 0 and vehicleGear == 1) then
+                vehicleGear = 'N'
+            elseif vehicleSpeed > 0 and vehicleGear == 0 then
+                vehicleGear = 'R'
+            end
+
+            -- Verificando o estado das luzes do veículo
+            local vehicleVal, vehicleLights, vehicleHighlights = GetVehicleLightsState(vehicle)
+            local vehicleIsLightsOn
+            if vehicleLights == 1 and vehicleHighlights == 0 then
+                vehicleIsLightsOn = 'normal'
+            elseif (vehicleLights == 1 and vehicleHighlights == 1) or (vehicleLights == 0 and vehicleHighlights == 1) then
+                vehicleIsLightsOn = 'high'
+            else
+                vehicleIsLightsOn = 'off'
+            end
+
+            -- Verificando o estado dos indicadores do veículo
+            local indicatorLights = GetVehicleIndicatorLights(vehicle)
+            local vehicleSignalIndicator
+            if indicatorLights == 1 then
+                vehicleSignalIndicator = 'left'
+            elseif indicatorLights == 2 then
+                vehicleSignalIndicator = 'right'
+            elseif indicatorLights == 3 then
+                vehicleSignalIndicator = 'both'
+            else
+                vehicleSignalIndicator = 'off'
+            end
+
+            -- Verificando o cinto de segurança do veículo
+            if PedVehIsCar == true then
+                local prevSpeed = currSpeed
+                currSpeed = vehicleSpeedSource
+                SetPedConfigFlag(PlayerPedId(), 32, true)
+
+                if not seatbeltIsOn then
+                    local vehIsMovingFwd = GetEntitySpeedVector(vehicle, true).y > 1.0
+                    local vehAcc = (prevSpeed - currSpeed) / GetFrameTime()
+
+                    if beltWarningSet == false then
+                        if currSpeed > 1 or currSpeed < -1 then
+                            beltWarningSet = true
+                            Config.Notification(Config.Locales['warn_seatbelt'].title, string.format(Config.Locales['warn_seatbelt'].text, feedbackID), 20000, Config.Locales['warn_seatbelt'].type)
+                            TriggerServerEvent("InteractSound_SV:PlayOnSource", "cintoAlarm", 0.3)
+                            TriggerServerEvent('InteractSound_SV:PlayWithinDistance', 2.5, 'carbuckle', 1.2)
+                            DisableControlAction(0, 75, false)
+                        end
+                    end
+
+                    if vehIsMovingFwd and (prevSpeed > (seatbeltEjectSpeed / 2.237)) and (vehAcc > (seatbeltEjectAccel * 9.81)) then
+                        SetEntityCoords(player, position.x, position.y, position.z - 0.47, true, true, true)
+                        SetEntityVelocity(player, prevVelocity.x, prevVelocity.y, prevVelocity.z)
+                        SetPedToRagdoll(player, 1000, 1000, 0, 0, 0, 0)
+                    else
+                        prevVelocity = GetEntityVelocity(vehicle)
+                    end
+                else
+                    DisableControlAction(0, 75, true)
+                end
+            end
+
+            -- Calculando o dano do veículo
+            local cardamage = GetVehicleEngineHealth(vehicle) / 10
+
+            -- Preenchendo as informações do veículo
+            vehicleInfo = {
+                updateVehicle = true,
+                status = true,
+                speed = vehicleSpeed,
+                nail = vehicleNailSpeed,
+                gear = vehicleGear,
+                fuel = vehicleFuel,
+                lights = vehicleIsLightsOn,
+                signals = vehicleSignalIndicator,
+                cruiser = vehicleCruiser,
+                seatbelt = { status = seatbeltIsOn },
+                haveBelt = PedVehIsCar,
+                damage = cardamage,
+                config = {
+                    speedUnit = Config.vehicle.speedUnit,
+                    maxSpeed = Config.vehicle.maxSpeed
+                }
+            }
+        else
+            -- Configurando informações do veículo se o jogador não estiver em um veículo
+            vehicleCruiser = 'off'
+            vehicleNailSpeed = 0
+            vehicleSignalIndicator = 'off'
+            speedBuffer[1], speedBuffer[2] = 0.0, 0.0
+            if beltWarningSet then
+                TriggerServerEvent('esx_mole_misiones:StopSoundOnSource')
+            end
+            seatbeltIsOn = false
+            beltWarningSet = false
+
+            vehicleInfo = {
+                updateVehicle = true,
+                status = false,
+                nail = 0,
+                seatbelt = { status = seatbeltIsOn },
+                cruiser = vehicleCruiser,
+                signals = vehicleSignalIndicator
+            }
+        end
+        SendNUIMessage(vehicleInfo)
+    end
 end)
+
 
 
 -- Everything that neededs to be at WAIT 0
@@ -277,7 +461,6 @@ Citizen.CreateThread(function ()
 						--TriggerServerEvent('esx_mole_misiones:PlayOnSource','buckle', 0.9)
 						--TriggerServerEvent("InteractSound_SV:PlayOnSource", "buckle", 0.3)
 					else
-						TriggerServerEvent('esx_mole_misiones:PlayOnSource', 'unbuckle', 0.9)
 						TriggerServerEvent("InteractSound_SV:PlayOnSource", "unbuckle", 0.9)
 						beltWarningSet = false
 						if(autopilotActive)then
